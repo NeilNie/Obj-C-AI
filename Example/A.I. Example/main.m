@@ -1,8 +1,8 @@
 //
 //  main.m
-//  Obj-C AI
+//  Neural Network (1)
 //
-//  Created by Yongyang Nie on 2/1/17.
+//  Created by Yongyang Nie on 1/25/17.
 //  Copyright © 2017 Yongyang Nie. All rights reserved.
 //
 

@@ -4,7 +4,7 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>Obj-C AI.xcscheme</key>
+		<key>Neural Network (1).xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
@@ -12,17 +12,17 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>28DBAEF31E42118300023DCB</key>
+		<key>28E8D9CE1E38E10400F53881</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>28DBAF091E42118300023DCB</key>
+		<key>28E8D9E41E38E10400F53881</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>28DBAF141E42118300023DCB</key>
+		<key>28E8D9EF1E38E10400F53881</key>
 		<dict>
 			<key>primary</key>
 			<true/>

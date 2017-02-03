@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "28DBAEF31E42118300023DCB"
-               BuildableName = "Obj-C AI.app"
-               BlueprintName = "Obj-C AI"
-               ReferencedContainer = "container:Obj-C AI.xcodeproj">
+               BlueprintIdentifier = "28E8D9CE1E38E10400F53881"
+               BuildableName = "Simple Neural Network.app"
+               BlueprintName = "Simple Neural Network"
+               ReferencedContainer = "container:Simple Neural Network.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,30 +32,30 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "28DBAF091E42118300023DCB"
-               BuildableName = "Obj-C AITests.xctest"
-               BlueprintName = "Obj-C AITests"
-               ReferencedContainer = "container:Obj-C AI.xcodeproj">
+               BlueprintIdentifier = "28E8D9E41E38E10400F53881"
+               BuildableName = "Simple Neural NetworkTests.xctest"
+               BlueprintName = "Simple Neural NetworkTests"
+               ReferencedContainer = "container:Simple Neural Network.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "28DBAF141E42118300023DCB"
-               BuildableName = "Obj-C AIUITests.xctest"
-               BlueprintName = "Obj-C AIUITests"
-               ReferencedContainer = "container:Obj-C AI.xcodeproj">
+               BlueprintIdentifier = "28E8D9EF1E38E10400F53881"
+               BuildableName = "Simple Neural NetworkUITests.xctest"
+               BlueprintName = "Simple Neural NetworkUITests"
+               ReferencedContainer = "container:Simple Neural Network.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "28DBAEF31E42118300023DCB"
-            BuildableName = "Obj-C AI.app"
-            BlueprintName = "Obj-C AI"
-            ReferencedContainer = "container:Obj-C AI.xcodeproj">
+            BlueprintIdentifier = "28E8D9CE1E38E10400F53881"
+            BuildableName = "Simple Neural Network.app"
+            BlueprintName = "Simple Neural Network"
+            ReferencedContainer = "container:Simple Neural Network.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -75,10 +75,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "28DBAEF31E42118300023DCB"
-            BuildableName = "Obj-C AI.app"
-            BlueprintName = "Obj-C AI"
-            ReferencedContainer = "container:Obj-C AI.xcodeproj">
+            BlueprintIdentifier = "28E8D9CE1E38E10400F53881"
+            BuildableName = "Simple Neural Network.app"
+            BlueprintName = "Simple Neural Network"
+            ReferencedContainer = "container:Simple Neural Network.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -94,10 +94,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "28DBAEF31E42118300023DCB"
-            BuildableName = "Obj-C AI.app"
-            BlueprintName = "Obj-C AI"
-            ReferencedContainer = "container:Obj-C AI.xcodeproj">
+            BlueprintIdentifier = "28E8D9CE1E38E10400F53881"
+            BuildableName = "Simple Neural Network.app"
+            BlueprintName = "Simple Neural Network"
+            ReferencedContainer = "container:Simple Neural Network.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
