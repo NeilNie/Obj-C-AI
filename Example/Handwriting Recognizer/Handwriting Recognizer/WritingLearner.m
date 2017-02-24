@@ -1,12 +1,12 @@
 //
-//  WritingTrainer.m
+//  WritingLearner.m
 //  Handwriting
 //
-//  Created by Yongyang Nie on 2/4/17.
+//  Created by Yongyang Nie on 2/20/17.
 //  Copyright © 2017 Yongyang Nie. All rights reserved.
 //
 
-#import "WritingTrainer.h"
+#import "WritingLearner.h"
 
 #if __has_feature(objc_arc)
 #define MDLog(format, ...) CFShow((__bridge CFStringRef)[NSString stringWithFormat:format, ## __VA_ARGS__]);
@@ -14,20 +14,17 @@
 #define MDLog(format, ...) CFShow([NSString stringWithFormat:format, ## __VA_ARGS__]);
 #endif
 
-#define TICK   NSDate *startTime = [NSDate date]
-#define TOCK   NSLog(@"execution time: %f", -[startTime timeIntervalSinceNow])
+@implementation WritingLearner
 
-@implementation WritingTrainer
-
-- (instancetype)initTrainer
+- (instancetype)initLearner
 {
     self = [super init];
     if (self) {
         
-        NSData *trainImages = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Obj-C AI/MNIST Data/train-images-idx3-ubyte"];
-        NSData *trainLabels = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Obj-C AI/MNIST Data/train-labels-idx1-ubyte"];
-        NSData *testImages = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Obj-C AI/MNIST Data/t10k-images-idx3-ubyte"];
-        NSData *testLabels = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Obj-C AI/MNIST Data/t10k-labels-idx1-ubyte"];
+        NSData *trainImages = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Trainer/MNIST Data/train-images-idx3-ubyte"];
+        NSData *trainLabels = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Trainer/MNIST Data/train-labels-idx1-ubyte"];
+        NSData *testImages = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Trainer/MNIST Data/t10k-images-idx3-ubyte"];
+        NSData *testLabels = [NSData dataWithContentsOfFile:@"/Users/Neil/Desktop/Neural Network Research/Handwriting Trainer/MNIST Data/t10k-labels-idx1-ubyte"];
         
         if (!trainLabels || !trainImages || !testImages || !testLabels)
             @throw [NSException exceptionWithName:@"Constructor Failed" reason:@"Error retrieving data" userInfo:nil];
@@ -50,7 +47,7 @@
                 NSLog(@"%.2f %%", (float)i / 600.0);
             
             //extract images
-            uint8 *ints = calloc(nPixels, sizeof(uint8));
+            UInt8 *ints = calloc(nPixels, sizeof(UInt8));
             [trainImages getBytes:ints range:NSMakeRange(imagePosition, 784)];
             
             NSMutableArray *pixels  = [[NSMutableArray alloc] initWithCapacity:nPixels];
@@ -58,7 +55,7 @@
                 [pixels addObject:[NSNumber numberWithFloat:(float)ints[i] / 255]];
             
             //extract labels1
-            uint8 *trainLabel = calloc(1, sizeof(uint8));
+            UInt8 *trainLabel = calloc(1, sizeof(UInt8));
             [trainLabels getBytes:trainLabel range:NSMakeRange(labelPosition, 1)];
             [self.labelArray addObject:[NSNumber numberWithInt:trainLabel[0]]];
             [self.imageArray addObject:pixels];
@@ -68,7 +65,7 @@
             // Extract test image/label if we're still in range
             if (i < 10000) {
                 //extract images
-                uint8 *ints = calloc(nPixels, sizeof(uint8));
+                UInt8 *ints = calloc(nPixels, sizeof(UInt8));
                 [testImages getBytes:ints range:NSMakeRange(imagePosition, 784)];
                 
                 NSMutableArray *pixels  = [[NSMutableArray alloc] initWithCapacity:nPixels];
@@ -79,7 +76,7 @@
                 [self.testImageArray addObject:pixels];
                 
                 // Extract labels
-                uint8 *tli = calloc(1, sizeof(uint8));
+                UInt8 *tli = calloc(1, sizeof(UInt8));
                 [testLabels getBytes:tli range:NSMakeRange(labelPosition, 1)];
                 [self.testLabelArray addObject:[NSNumber numberWithInt:tli[0]]];
                 tli = NULL;
@@ -87,7 +84,7 @@
             imagePosition += nPixels;
             labelPosition++;
         }
-        self.mind = [[Mind alloc] initWith:784 hidden:36 outputs:10 learningRate:0.1 momentum:0.9 lmbda:0.00 hiddenWeights:nil outputWeights:nil];
+        self.mind = [[Mind alloc] initWith:10 hidden:30 outputs:784 learningRate:0.2 momentum:0.9 lmbda:0.00 hiddenWeights:nil outputWeights:nil];
     }
     return self;
 }
@@ -96,43 +93,43 @@
     
     int cnt = 0;
     float rate = 0.00;
-    while (rate < correctRate) {
-
+    for (int j = 0; j < epochs; j++) {
+        
         [self shuffle:self.imageArray withArray:self.labelArray];
         
         for (int i = 0; i < batchSize; i++) {
             
-            NSMutableArray *batch = [NSMutableArray arrayWithArray:self.imageArray[i]];
-            [self.mind forwardPropagation:batch];
             NSMutableArray *answer = [NSMutableArray arrayWithObjects:@0,@0,@0,@0,@0,@0,@0,@0,@0,@0, nil];
             [answer replaceObjectAtIndex:[self.labelArray[i] intValue] withObject:@1];
-            [self.mind backwardPropagation:answer];
+            [self.mind forwardPropagation:answer];
+            
+            NSMutableArray *batch = [NSMutableArray arrayWithArray:self.imageArray[i]];
+            [self.mind backwardPropagation:batch];
         }
-        rate = [self evaluate:10000] * 100;
+        rate = [self evaluate:5000];
         MDLog(@"%.2f", rate);
         cnt ++;
     }
-    [self showNotification];
-    [MindStorage storeMind:self.mind path:@"/Users/Neil/Desktop/mindData"];
+    [MindStorage storeMind:self.mind path:@"/Users/Neil/Desktop/mindData-learn"];
 }
 
 -(float)evaluate:(int)ntest{
     
     if (ntest == 0 || ntest > self.testLabelArray.count)
         @throw [NSException exceptionWithName:@"Invalid parameter" reason:@"Number of tests is not valid. " userInfo:nil];
-    
-    int correct = 0;
+
+    float sum = 0.0;
     for (int i = 0; i < ntest; i++) {
         
-        NSMutableArray *image = [NSMutableArray arrayWithArray:self.testImageArray[i]];
-        int result = [self largestIndex:[self.mind forwardPropagation:image] count:10];
-        int answer = [self.testLabelArray[i] intValue];
+        NSMutableArray *answer = [NSMutableArray arrayWithObjects:@0,@0,@0,@0,@0,@0,@0,@0,@0,@0, nil];
+        [answer replaceObjectAtIndex:[self.testLabelArray[i] intValue] withObject:@1];
+        float *result = [self.mind forwardPropagation:answer];
         
-        if (result == answer)
-            correct++;
+        for (int x = 0; x < 784; x++) {
+            sum += fabsf([[self.testImageArray[i] objectAtIndex:x] floatValue] - result[x]);
+        }
     }
-    //NSLog(@"%i / %i", correct, ntest);
-    return (float)correct / (float)ntest;
+    return sum;
 }
 
 -(void)getMindWithPath:(NSString *)path{
@@ -141,15 +138,6 @@
 }
 
 #pragma mark - Private Helpers
-
-- (void)showNotification{
-    NSUserNotification *notification = [[NSUserNotification alloc] init];
-    notification.title = @"Finished Training";
-    notification.informativeText = @"The neural network has finished training";
-    notification.soundName = NSUserNotificationDefaultSoundName;
-    
-    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
-}
 
 -(int)largestIndex:(float *)array count:(int)count{
     

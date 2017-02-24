@@ -14,6 +14,8 @@
 #define MDLog(format, ...) CFShow([NSString stringWithFormat:format, ## __VA_ARGS__]);
 #endif
 
+#define TICK   NSDate *startTime = [NSDate date]
+#define TOCK   NSLog(@"execution time: %f", -[startTime timeIntervalSinceNow])
 
 @implementation Mind
 
@@ -83,20 +85,21 @@
 #pragma mark - Instance Method
 
 
--(float *)forwardPropagation:(NSMutableArray <NSNumber *>*)inputs{
+-(float *)forwardPropagation:(NSMutableArray <NSNumber *>*)ins{
     
     //--------------------------------------------------
     //varify valid data
-    if(self.numInputs != (int)inputs.count)
+    if(self.numInputs != (int)ins.count)
         @throw [NSException exceptionWithName:@"Neural networkd data inconsistancy" reason:@"inputs.cout != self.numInputs" userInfo:nil];
     
+    NSMutableArray *inputs = [ins mutableCopy];
     [inputs insertObject:[NSNumber numberWithFloat:1.00f] atIndex:0];
     for (int i = 0; i < self.numInputNodes; i++) {
         self.io->inputs[i] = [inputs[i] floatValue];
     }
+    
     //--------------------------------------------------
     // Calculate the weighted sums for the hidden layer
-    
     vDSP_mmul(self.weights->hiddenWeights, 1,                        //input mat _A
               self.io->inputs, 1,                           //input mat _B
               self.io->hiddenOutputs, 1,                    //result mat _C
@@ -108,7 +111,6 @@
     [self applyActivitionIsOutput:NO];
     
     //--------------------------------------------------
-    
     vDSP_mmul(self.weights->outputWeights, 1,
               self.io->hiddenOutputs, 1,
               self.io->outputs, 1,
@@ -119,7 +121,7 @@
     return self.io->outputs;
 }
 
--(float)backwardPropagation:(NSMutableArray <NSNumber *>*)answer{
+-(void)backwardPropagation:(NSMutableArray <NSNumber *>*)answer{
     
     //varify data
     if (answer.count != self.numOutputs)
@@ -144,15 +146,12 @@
     //update all output the weights
     for (int x = 0; x < self.numOutputWeights; x++) {
         
-        float offset = self.weights->outputWeights[x] + (self.momentumFactor * (self.weights->outputWeights[x] - self.weights->previousOutputWeights[x]));
-        
+        float offset = self.weights->outputWeights[x]; //+ (self.momentumFactor * (self.weights->outputWeights[x] - self.weights->previousOutputWeights[x]));
         int errorIndex = [self.outputErrorIndices[x] intValue];
         int hiddenOutputIndex = [self.hiddenOutputIndices[x] intValue];
-        float mfLRErrIn = self.mfLR * self.errors->outputErrors[errorIndex] * self.io->hiddenOutputs[hiddenOutputIndex];
-        float l = (1.0 - self.learningRate) * (self.lmbda / (float)self.numOutputs);
-        self.weights->outputWeightsNew[x] = offset + mfLRErrIn + l;
+        float mfLRErrIn = self.errors->outputErrors[errorIndex] * self.io->hiddenOutputs[hiddenOutputIndex] * self.learningRate;
+        self.weights->outputWeightsNew[x] = offset + mfLRErrIn;
     }
-    
     vDSP_mmov(self.weights->outputWeights, self.weights->previousOutputWeights, 1, self.numOutputWeights, 1, 1);
     vDSP_mmov(self.weights->outputWeightsNew, self.weights->outputWeights, 1, self.numOutputWeights, 1, 1);
     
@@ -160,19 +159,15 @@
     //update all hidden the weights
     for (int i = 0; i < self.numHiddenWeights; i++) {
         
-        float offset = self.weights->hiddenWeights[i] + (self.momentumFactor * (self.weights->hiddenWeights[i] - self.weights->previousHiddenWeights[i]));
+        float offset = self.weights->hiddenWeights[i]; //+ (self.momentumFactor * (self.weights->hiddenWeights[i] - self.weights->previousHiddenWeights[i]));
         int errorIndex = [self.hiddenErrorIndices[i] intValue];
         int inputIndex = [self.inputIndices[i] intValue];
         // Note: +1 on errorIndex to offset for bias 'error', which is ignored
-        float mfLRErrIn = self.mfLR * self.errors->hiddenErrors[errorIndex + 1] * self.io->inputs[inputIndex];
-        float l = (1.0 - self.learningRate) * (self.lmbda / (float)self.numHiddenNodes);
-        self.weights->hiddenWeightsNew[i] = offset + mfLRErrIn + l;
+        float mfLRErrIn = self.errors->hiddenErrors[errorIndex + 1] * self.io->inputs[inputIndex] * self.learningRate;
+        self.weights->hiddenWeightsNew[i] = offset + mfLRErrIn;
     }
-    
     vDSP_mmov(self.weights->hiddenWeights, self.weights->previousHiddenWeights, 1, self.numHiddenWeights, 1, 1);
     vDSP_mmov(self.weights->hiddenWeightsNew, self.weights->hiddenWeights, 1, self.numHiddenWeights, 1, 1);
-    
-    return 0.00;
 }
 
 -(void)train:(NSArray <NSArray <NSNumber*>*>*)inputs
@@ -208,9 +203,8 @@
         NSMutableArray *input = [NSMutableArray arrayWithArray:[testInputs objectAtIndex:x]];
         float *result = [self forwardPropagation:[NSMutableArray arrayWithArray:input]];
         float error = 0.0;
-        for (int i = 0; i < self.numOutputs; i++) {
+        for (int i = 0; i < self.numOutputs; i++)
             error = (result[i] - [[[answer objectAtIndex:x] objectAtIndex:i] floatValue]) + error;
-        }
         error = error / self.numOutputs;
         total = total + fabs(error);
     }
@@ -264,33 +258,29 @@
 
 -(void)convertToObjects:(float *)floats count:(int)n array:(NSMutableArray <NSNumber *>*)array{
     
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
         [array replaceObjectAtIndex:i withObject:[NSNumber numberWithFloat:floats[i]]];
-    }
 }
 
 -(NSMutableArray <NSNumber *>*)fillArray:(int)count value:(float)value{
     
     NSMutableArray *array = [NSMutableArray array];
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
         [array addObject:[NSNumber numberWithFloat:value]];
-    }
     return array;
 }
 
 -(int)matSize:(NSArray *)array{
     
     int total = 0;
-    for (NSNumber *n in array) {
+    for (NSNumber *n in array)
         total += n.intValue;
-    }
     return total;
 }
 
 -(void)print:(float *)array count:(int)count{
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
         MDLog(@"%f", array[i]);
-    }
 }
 
 #pragma mark - Override

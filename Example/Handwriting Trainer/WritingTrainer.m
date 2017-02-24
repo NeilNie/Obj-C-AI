@@ -47,29 +47,28 @@
         for (int i = 0; i < 60000; i++) {
             
             if (i%10000 == 0 || i == 60000 - 1)
-                NSLog(@"%.2f %%", (float)i / 600.0);
+                [self.delegate updateLogText:[NSString stringWithFormat:@"%.2f %%", (float)i / 600.0]];
             
             //extract images
-            uint8_t *ints = calloc(nPixels, sizeof(uint8_t));
+            uint8 *ints = calloc(nPixels, sizeof(uint8));
             [trainImages getBytes:ints range:NSMakeRange(imagePosition, 784)];
             
             NSMutableArray *pixels  = [[NSMutableArray alloc] initWithCapacity:nPixels];
             for (int i = 0; i < nPixels; i++)
                 [pixels addObject:[NSNumber numberWithFloat:(float)ints[i] / 255]];
             
-            ints = NULL;
-            [self.imageArray addObject:pixels];
-            
             //extract labels1
-            uint8_t *trainLabel = calloc(1, sizeof(uint8_t));
+            uint8 *trainLabel = calloc(1, sizeof(uint8));
             [trainLabels getBytes:trainLabel range:NSMakeRange(labelPosition, 1)];
             [self.labelArray addObject:[NSNumber numberWithInt:trainLabel[0]]];
+            [self.imageArray addObject:pixels];
             trainLabel = NULL;
+            ints = NULL;
             
             // Extract test image/label if we're still in range
             if (i < 10000) {
                 //extract images
-                uint8_t *ints = calloc(nPixels, sizeof(uint8_t));
+                uint8 *ints = calloc(nPixels, sizeof(uint8));
                 [testImages getBytes:ints range:NSMakeRange(imagePosition, 784)];
                 
                 NSMutableArray *pixels  = [[NSMutableArray alloc] initWithCapacity:nPixels];
@@ -80,7 +79,7 @@
                 [self.testImageArray addObject:pixels];
                 
                 // Extract labels
-                uint8_t *tli = calloc(1, sizeof(uint8_t));
+                uint8 *tli = calloc(1, sizeof(uint8));
                 [testLabels getBytes:tli range:NSMakeRange(labelPosition, 1)];
                 [self.testLabelArray addObject:[NSNumber numberWithInt:tli[0]]];
                 tli = NULL;
@@ -88,25 +87,20 @@
             imagePosition += nPixels;
             labelPosition++;
         }
-        self.mind = [[Mind alloc] initWith:784 hidden:30 outputs:10 learningRate:0.1 momentum:0.9 lmbda:0.00 hiddenWeights:nil outputWeights:nil];
+        self.mind = [[Mind alloc] initWith:784 hidden:200 outputs:10 learningRate:0.3 momentum:0.3 lmbda:0.00 hiddenWeights:nil outputWeights:nil];
     }
     return self;
 }
 
 -(void)train:(int)batchSize epochs:(int)epochs correctRate:(float)correctRate{
     
-    int cnt = 0;
+    int count = 0;
     float rate = 0.00;
-    while (rate < correctRate) {
-        
-        TICK;
+    while (count < 70) {
         
         [self shuffle:self.imageArray withArray:self.labelArray];
         
         for (int i = 0; i < batchSize; i++) {
-
-            if (i%10000 == 0 || i == 60000 - 1)
-                NSLog(@"%.2f %%", (float)i / 600.0);
             
             NSMutableArray *batch = [NSMutableArray arrayWithArray:self.imageArray[i]];
             [self.mind forwardPropagation:batch];
@@ -115,13 +109,12 @@
             [self.mind backwardPropagation:answer];
         }
         rate = [self evaluate:10000] * 100;
-        cnt ++;
-
-        TOCK;
+        MDLog(@"%.2f", rate);
+        count ++;
     }
+    [self showNotification];
     [MindStorage storeMind:self.mind path:@"/Users/Neil/Desktop/mindData"];
 }
-
 
 -(float)evaluate:(int)ntest{
     
@@ -138,8 +131,6 @@
         if (result == answer)
             correct++;
     }
-    [self shuffle:self.testImageArray withArray:self.testLabelArray];
-    NSLog(@"%i / %i", correct, ntest);
     return (float)correct / (float)ntest;
 }
 
@@ -149,6 +140,15 @@
 }
 
 #pragma mark - Private Helpers
+
+- (void)showNotification{
+    NSUserNotification *notification = [[NSUserNotification alloc] init];
+    notification.title = @"Finished Training";
+    notification.informativeText = @"The neural network has finished training";
+    notification.soundName = NSUserNotificationDefaultSoundName;
+    
+    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+}
 
 -(int)largestIndex:(float *)array count:(int)count{
     
@@ -175,8 +175,8 @@
     }
 }
 
-- (void)shuffle:(NSMutableArray *)array1 withArray:(NSMutableArray *)array2
-{
+- (void)shuffle:(NSMutableArray *)array1 withArray:(NSMutableArray *)array2{
+    
     if (array1.count != array2.count)
         @throw [NSException exceptionWithName:@"Invalid parameter" reason:@"array1 count differs from array2 count" userInfo:nil];
     

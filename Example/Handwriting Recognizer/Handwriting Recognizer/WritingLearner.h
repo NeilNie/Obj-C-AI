@@ -1,8 +1,8 @@
 //
-//  WritingTrainer.h
+//  WritingLearner.h
 //  Handwriting
 //
-//  Created by Yongyang Nie on 2/4/17.
+//  Created by Yongyang Nie on 2/20/17.
 //  Copyright © 2017 Yongyang Nie. All rights reserved.
 //
 
@@ -10,7 +10,7 @@
 #import "Mind.h"
 #import "MindStorage.h"
 
-@interface WritingTrainer : NSObject
+@interface WritingLearner : NSObject
 
 @property (nonatomic, strong) NSMutableArray *imageArray;
 @property (nonatomic, strong) NSMutableArray *labelArray;
@@ -18,15 +18,12 @@
 @property (nonatomic, strong) NSMutableArray *testLabelArray;
 @property (nonatomic, strong) Mind *mind;
 
--(instancetype)initTrainer;
+-(instancetype)initLearner;
 
 -(void)getMindWithPath:(NSString *)path;
 
 -(float)evaluate:(int)ntest;
 
--(int)largestIndex:(float *)array count:(int)count;
-
 -(void)train:(int)batchSize epochs:(int)epochs correctRate:(float)correctRate;
 
 @end
-
